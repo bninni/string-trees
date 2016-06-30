@@ -26,13 +26,18 @@ A String Tree is an Array of Strings
 **StringTrees( Tree, Map, Options )**
 * _Tree_ (**Array**) - The String Tree to parse
 * _Map_ (**Object**) - The Map of Strings to replace with other Strings/StringTrees
-* _Options_ (**Object**) - The Options
+* _Options_ (**Object**) - The Options (if not used, the default Options will be used)
   * _wordBoundary_ (**Boolean**) - Whether or not the Map should only replace whole words that match
     * Default : `false`
   * _delimiter_ (**String**) - The Sring to place in between each string in the Tree
     * Default : `''`
   * _delimiterMapped_ (**String**) - The Sring to wrap around each mapped string
     * Default : `''`  
+
+The default _Options_ can be also set via the following method:
+
+**StringTrees.defineSettings( _obj_ )**
+  * _obj_ - The Options (see above)
 
 ## Examples
 

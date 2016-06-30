@@ -4,10 +4,16 @@ Copyright Brian Ninni 2016
 
 var x,	//shorter than 'undefined'
 	just = require('basic-functions'),
+	Settings = {},
 	//To take an object and create a RegExp that will match any of the keys
 	BuildRegex = (function(){
 		//Characters that need to be escaped for use in RegEx
 		var regexChars = new RegExp( '[\\' + ['^','[',']','{','}','(',')','\\','/','.',',','?','-','+','*','|','$'].join('\\') + ']', 'g' );
+		
+		//to sort an array by length
+		function sortArrayByLength(a, b){
+		  return b.length - a.length;
+		}
 			
 		//To make a string regex safe by prefixing certain certain chars with the escape char
 		function makeRegexSafe( str ){
@@ -15,7 +21,7 @@ var x,	//shorter than 'undefined'
 		}
 		
 		return function BuildRegex( o, wb ){
-			var sources = Object.keys(o).filter( just.echo ).map( makeRegexSafe ),
+			var sources = Object.keys(o).sort( sortArrayByLength ).filter( just.echo ).map( makeRegexSafe ),
 				str = wb ? '\\b' : '';
 				
 			return sources.length ?
@@ -26,10 +32,17 @@ var x,	//shorter than 'undefined'
 	})();
 
 //To clone the keys from the given object to a new object
-function clone( o ){
-	var ret = {};
-	for(var key in o){
-		ret[key] = o[key];
+function clone( obj ){
+	
+	obj = obj instanceof Object ?
+		obj :
+		{};
+		
+	var key,
+		ret = {};
+	
+	for(key in obj){
+		ret[key] = obj[key];
 	}
 	return ret;
 }
@@ -140,7 +153,9 @@ function StringTree( Tree, Map, Options, Output ){
 		
 	//Ensure the Map, Output, and Options are the correct type
 	if( !(Map instanceof Object) ) Map = {}
-	if( !(Options instanceof Object) ) Options = {}
+	
+	Options = createSettingsObj( Options, Settings );
+	
 	if( !(Output instanceof Array) ) Output = []
 	
 	BuildStringTree({
@@ -171,9 +186,32 @@ function StringTreeMap( Tree, Map, Options ){
 	return Output;
 }
 
+function createSettingsObj( obj, base ){
+	obj = obj instanceof Object ?
+		obj :
+		{};
+
+	return {
+		delimiter : obj.hasOwnProperty('delimiter') ?
+			obj.delimiter :
+			base.delimiter,
+		delimiterMapped : obj.hasOwnProperty('delimiterMapped') ?
+			obj.delimiterMapped :
+			base.delimiterMapped,
+		wordBoundary : obj.hasOwnProperty('wordBoundary') ?
+			obj.wordBoundary :
+			base.wordBoundary
+	};
+}
+
 function Parse( Tree, Map, Options ){
 	return StringTree( Tree, Map, Options );
 };
+
+Parse.defineSettings = function( obj ){
+	Settings = createSettingsObj( obj, Settings )
+	return Parse;
+}
 
 Parse.each = function( Trees, Map, Options ){
 	var Output = [];

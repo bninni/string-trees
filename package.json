@@ -1,6 +1,6 @@
 {
   "name": "string-trees",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Combine each branch in a Tree of Strings into its own string",
   "main": "index.js",
   "directories": {
