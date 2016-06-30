@@ -3,6 +3,7 @@ Copyright Brian Ninni 2016
 */
 
 var x,	//shorter than 'undefined'
+	just = require('basic-functions'),
 	//To take an object and create a RegExp that will match any of the keys
 	BuildRegex = (function(){
 		//Characters that need to be escaped for use in RegEx
@@ -14,7 +15,7 @@ var x,	//shorter than 'undefined'
 		}
 		
 		return function BuildRegex( o, wb ){
-			var sources = Object.keys(o).filter( x => x ).map( makeRegexSafe ),
+			var sources = Object.keys(o).filter( just.echo ).map( makeRegexSafe ),
 				str = wb ? '\\b' : '';
 				
 			return sources.length ?
@@ -27,7 +28,9 @@ var x,	//shorter than 'undefined'
 //To clone the keys from the given object to a new object
 function clone( o ){
 	var ret = {};
-	for(var key in o) ret[key] = o[key];
+	for(var key in o){
+		ret[key] = o[key];
+	}
 	return ret;
 }
 
@@ -47,14 +50,49 @@ function clone( o ){
 	IgnoreMap : whether or not the mapping should be ignore (will be ignored if the given array was already mapped)
 	useMappedDelimiter : Whether to use the Mapped Delimiter or not
 */
-function BuildStringTree( Source, Map = Source.Map, Options = Source.Options, Element = Source.Tree[0], Index = 1, Branch = '', Regex = BuildRegex(Map, Options.wordBoundary), ignoreMap = false, dontAddDelimiter = false, useMappedDelimiter = false ){
-	var { delimiterMapped = '', delimiter = '' } = Options;
+function BuildStringTree( Source, Map, Options, Element, Index, Branch, Regex, ignoreMap, dontAddDelimiter, useMappedDelimiter ){
+	
+	Map = Map === x ?
+		Source.Map :
+		Map;
+	Options = Options === x ?
+		Source.Options :
+		Options;
+	Element = Element === x ?
+		Source.Tree[0] :
+		Element;
+	Index = Index === x ?
+		1 :
+		Index;
+	Branch = Branch === x ?
+		'' :
+		Branch;
+	Regex = Regex === x ?
+		BuildRegex(Map, Options.wordBoundary) :
+		Regex;
+	ignoreMap = ignoreMap === x ?
+		false :
+		ignoreMap;
+	dontAddDelimiter = dontAddDelimiter === x ?
+		false :
+		dontAddDelimiter;
+	useMappedDelimiter = useMappedDelimiter === x ?
+		false :
+		useMappedDelimiter;
+
+	var newMap, newElement, addBefore, addAfter,
+		delimiterMapped = Options.delimiterMapped === x ?
+			'' :
+			Options.delimiterMapped,
+		delimiter = Options.delimiter === x ?
+			'' :
+			Options.delimiter;
 	
 	//If the current Element is an Array, then handle each sub-Element separately
 	if( Element instanceof Array ){
-		return Element.forEach( subElement =>
+		return Element.forEach(function( subElement ){
 			BuildStringTree( Source, x, Options, subElement instanceof Array ? StringTree( subElement, Source.Map, Source.Options ) : subElement, Index, Branch, Regex, ignoreMap, dontAddDelimiter, useMappedDelimiter )
-		)
+		})
 	}
 	
 	//Cast the Element to a String
@@ -62,13 +100,17 @@ function BuildStringTree( Source, Map = Source.Map, Options = Source.Options, El
 			
 	//If there is a Mapped value in the Element, then replace that value
 	if( !ignoreMap && Element.match(Regex) ){
-		let newMap = clone(Map),
-			//Delete each match from the new Map to prevent circular replacements
-			newElement = Element.split( Regex ),
-			addBefore = newElement[0] === '',
-			addAfter = newElement[ newElement.length-1 ] === ''
+		newMap = clone(Map);
+		//Delete each match from the new Map to prevent circular replacements
+		newElement = Element.split( Regex );
+		addBefore = newElement[0] === '';
+		addAfter = newElement[ newElement.length-1 ] === '';
 			
-		newElement = newElement.filter( x => x ).map( x => Map.hasOwnProperty(x) ? delete newMap[x] && Map[x] : x );
+		newElement = newElement.filter( just.echo ).map(function(x){
+			return Map.hasOwnProperty(x) ?
+				delete newMap[x] && Map[x] :
+				x;
+		});
 
 		if( addBefore && Branch ){
 			Branch += String( delimiter );
@@ -91,7 +133,8 @@ function BuildStringTree( Source, Map = Source.Map, Options = Source.Options, El
 }
 
 //Parses the given Tree and returns an array of combined strings
-function StringTree( Tree, Map, Options, Output ){	
+function StringTree( Tree, Map, Options, Output ){
+
 	//If the given Tree is not a non-empty array, then return an empty array
 	if( !(Tree instanceof Array) || !Tree.length ) return [];
 		
@@ -100,7 +143,12 @@ function StringTree( Tree, Map, Options, Output ){
 	if( !(Options instanceof Object) ) Options = {}
 	if( !(Output instanceof Array) ) Output = []
 	
-	BuildStringTree( {Tree, Map, Output, Options} );
+	BuildStringTree({
+		Tree : Tree,
+		Map : Map,
+		Output : Output,
+		Options : Options
+	});
 	
 	return Output;
 }
@@ -110,10 +158,15 @@ function StringTree( Tree, Map, Options, Output ){
 function StringTreeMap( Tree, Map, Options ){
 	var Output = [],
 		newOptions = clone(Options);
-			
+		
 	newOptions.delimiter = newOptions.delimiterMapped;
 	
-	BuildStringTree( {Tree, Map, Output, Options}, x, newOptions );
+	BuildStringTree({
+		Tree : Tree,
+		Map : Map,
+		Output : Output,
+		Options : Options
+	}, x, newOptions );
 	
 	return Output;
 }
@@ -125,7 +178,9 @@ function Parse( Tree, Map, Options ){
 Parse.each = function( Trees, Map, Options ){
 	var Output = [];
 	
-	Trees.forEach( Tree => StringTree( Tree, Map, Options, Output ) )
+	Trees.forEach(function(Tree){
+		StringTree( Tree, Map, Options, Output );
+	})
 	
 	return Output;
 }

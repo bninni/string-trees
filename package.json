@@ -25,6 +25,9 @@
   "devDependencies": {
     "vows": "~0.8.1"
   },
+  "dependencies": {
+    "basic-functions": "*"
+  },
   "author": "Brian Ninni <brian@ninni.io> (http://ninni.io)",
   "license": "MIT",
   "bugs": {

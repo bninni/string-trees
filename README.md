@@ -119,7 +119,7 @@ var strings = ['hi','this','is','a','test'],
   options = {
     delimiter : ' ',
     delimiterMapped : ',',
-  wordBoundary : true
+    wordBoundary : true
   }
 
 StringTrees( strings, map, options ) == [
